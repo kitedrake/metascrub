@@ -114,6 +114,32 @@ build/MetaScrub.app/Contents/MacOS/MetaScrub --self-test FOLDER   # checks the b
 
 Clean options: `--keep-attributes`, `--drop-color-profile`, `--drop-orientation`, `--keep-dates`.
 
+## Updates and releases
+
+Released copies update themselves with [Sparkle](https://sparkle-project.org) 2.10.1 (pinned in
+`Package.swift`). A plain `./build.sh`, and omso Builder's builds, have no update feed: they never
+check for updates and show no update menu items.
+
+A release build gets its feed and key from the environment; the release tool in the
+`software-site` repository sets them:
+
+| Variable | What it does |
+| --- | --- |
+| `UPDATE_FEED_URL` | the update feed, `<site>/updates/metascrub/appcast.xml` |
+| `UPDATE_PUBLIC_KEY` | the EdDSA public key; an update signed with any other key is refused |
+| `SIGN_IDENTITY` | codesign identity: a Developer ID for releases (default: ad-hoc) |
+
+Such a build has **Check for Updates…** and **Check for Updates Automatically** in the app menu.
+Sparkle asks on the second launch whether to check automatically, and sends nothing before that. A
+check downloads the feed from the site; the request names the app and its version, and system
+profiling stays off, so nothing about the Mac or its files is sent (the server sees the IP address,
+as with any web request).
+
+To release: bump `VERSION`, commit, then run `python3 release.py metascrub --notes "…"` in the
+site repository. `sh scripts/test-update.sh metascrub` there tests a real update end to end with a
+throwaway key, including refusing an update signed with another key. Sparkle's XPC services are
+left out of the app because MetaScrub isn't sandboxed.
+
 ## Tests
 
 ```sh
@@ -141,6 +167,6 @@ Sources/MetaScrubCore/      engine, no UI
   FileSystem.swift          file info, extended attributes, Spotlight, safe writing
   Binary.swift              byte reading/writing helpers, CRC-32
   Formats/                  one handler per family (images, ID3/MP3, FLAC, WAV/AIFF, MP4, PDF, ZIP/Office)
-Sources/MetaScrub/          SwiftUI app: sidebar, Cleaner, Viewer, command line, snapshots
+Sources/MetaScrub/          SwiftUI app: sidebar, Cleaner, Viewer, command line, snapshots, updates
 Tests/MetaScrubCoreTests/   fixtures and per-format tests
 ```

@@ -26,6 +26,9 @@ struct MetaScrubApp: App {
         }
         .defaultSize(width: 1120, height: 760)
         .commands {
+            if let updates = Updates.shared {
+                CommandGroup(after: .appInfo) { UpdateCommands(updates: updates) }
+            }
             CommandGroup(replacing: .newItem) {
                 Button("Open in Viewer…") { model.chooseFiles(for: .viewer) }
                     .keyboardShortcut("o")

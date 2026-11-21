@@ -100,3 +100,8 @@ These rules apply when working in a Git repository, including non-software work.
   cleaning or saving at the user's own files or at system files in place.
 - When adding or changing format support, update the README format table and add a fixture-based
   test that reads, edits (if supported) and cleans the format.
+- In-app updates use Sparkle, pinned in `Package.swift`. Only release builds (`UPDATE_FEED_URL` and
+  `UPDATE_PUBLIC_KEY` set) contain an updater; keep plain and omso Builder builds without one.
+  Releases go through `release.py` in the `software-site` repository, with `VERSION` bumped first.
+  After changing Sparkle or `build.sh`, run `sh scripts/test-update.sh metascrub` there. Never commit
+  signing keys.

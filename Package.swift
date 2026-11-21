@@ -5,6 +5,10 @@ import PackageDescription
 let package = Package(
     name: "MetaScrub",
     platforms: [.macOS(.v26)],
+    dependencies: [
+        // In-app updates (release builds only; see build.sh). Pinned: bump deliberately.
+        .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.1"),
+    ],
     targets: [
         .target(
             name: "MetaScrubCore",
@@ -13,7 +17,7 @@ let package = Package(
         ),
         .executableTarget(
             name: "MetaScrub",
-            dependencies: ["MetaScrubCore"],
+            dependencies: ["MetaScrubCore", .product(name: "Sparkle", package: "Sparkle")],
             path: "Sources/MetaScrub",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
