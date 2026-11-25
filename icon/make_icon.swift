@@ -1,5 +1,5 @@
-// Draws the MetaScrub app icon (1024×1024 PNG): a document whose metadata lines are being wiped
-// away by a sparkle, on an indigo-to-teal rounded square. Run by icon/make-icns.sh.
+// Draws the MetaScrub app icon (1024×1024 PNG): a photo with a location pin, its lower part wiped away by a brush
+// stroke, on a red tile. Run by icon/make-icns.sh.
 import AppKit
 
 let size: CGFloat = 1024
@@ -11,79 +11,171 @@ NSGraphicsContext.current = context
 let cg = context.cgContext
 let space = CGColorSpaceCreateDeviceRGB()
 
-// macOS icon grid: the shape is inset from the canvas and has rounded corners.
-let inset: CGFloat = 100
-let rect = CGRect(x: inset, y: inset, width: size - 2 * inset, height: size - 2 * inset)
-let shape = CGPath(roundedRect: rect, cornerWidth: 185, cornerHeight: 185, transform: nil)
+// MARK: Family style
+// The sibling apps' icon scripts share this part word for word: a solid colour tile shaded slightly lighter at the
+// top, one bold cream symbol with a gold accent, and a small kite tail in the lower-right corner. Only `tile` and the
+// symbol differ between apps. Change all of them together.
 
+func rgb(_ hex: UInt32, alpha: CGFloat = 1) -> CGColor {
+    CGColor(red: CGFloat((hex >> 16) & 0xff) / 255, green: CGFloat((hex >> 8) & 0xff) / 255,
+            blue: CGFloat(hex & 0xff) / 255, alpha: alpha)
+}
+/// `hex` moved `amount` of the way towards white (positive) or black (negative).
+func shade(_ hex: UInt32, _ amount: CGFloat) -> CGColor {
+    let c = rgb(hex).components!
+    let target: CGFloat = amount > 0 ? 1 : 0
+    let t = abs(amount)
+    return CGColor(red: c[0] + (target - c[0]) * t, green: c[1] + (target - c[1]) * t, blue: c[2] + (target - c[2]) * t, alpha: 1)
+}
+let cream = rgb(0xf6f0e4)
+let gold = rgb(0xe2b552)
+let tile: UInt32 = 0xc8432b  // kite red
+
+// The tile, on the macOS icon grid: inset from the canvas, with rounded corners and a drop shadow.
+let inset: CGFloat = 100
+let shape = CGPath(roundedRect: CGRect(x: inset, y: inset, width: size - 2 * inset, height: size - 2 * inset),
+                   cornerWidth: 185, cornerHeight: 185, transform: nil)
 cg.saveGState()
 cg.setShadow(offset: CGSize(width: 0, height: -12), blur: 28, color: CGColor(gray: 0, alpha: 0.35))
-cg.addPath(shape); cg.setFillColor(CGColor(red: 0.16, green: 0.18, blue: 0.45, alpha: 1)); cg.fillPath()
+cg.addPath(shape); cg.setFillColor(rgb(tile)); cg.fillPath()
 cg.restoreGState()
 cg.saveGState()
 cg.addPath(shape); cg.clip()
-let background = CGGradient(colorsSpace: space, colors: [
-    CGColor(red: 0.33, green: 0.30, blue: 0.86, alpha: 1), CGColor(red: 0.10, green: 0.55, blue: 0.70, alpha: 1)] as CFArray,
-    locations: [0, 1])!
-cg.drawLinearGradient(background, start: CGPoint(x: inset, y: size - inset), end: CGPoint(x: size - inset, y: inset), options: [])
-// Soft top highlight, like light on glass.
-let shine = CGGradient(colorsSpace: space, colors: [CGColor(gray: 1, alpha: 0.22), CGColor(gray: 1, alpha: 0)] as CFArray, locations: [0, 1])!
-cg.drawLinearGradient(shine, start: CGPoint(x: size / 2, y: size - inset), end: CGPoint(x: size / 2, y: size / 2), options: [])
+let tileShade = CGGradient(colorsSpace: space, colors: [shade(tile, 0.10), rgb(tile), shade(tile, -0.10)] as CFArray,
+                           locations: [0, 0.5, 1])!
+cg.drawLinearGradient(tileShade, start: CGPoint(x: 0, y: size - inset), end: CGPoint(x: 0, y: inset), options: [])
 cg.restoreGState()
 
-// The document.
-let page = CGRect(x: 300, y: 215, width: 400, height: 520)
-let fold: CGFloat = 110
-let paper = CGMutablePath()
-paper.move(to: CGPoint(x: page.minX + 36, y: page.minY))
-paper.addLine(to: CGPoint(x: page.maxX - 36, y: page.minY))
-paper.addQuadCurve(to: CGPoint(x: page.maxX, y: page.minY + 36), control: CGPoint(x: page.maxX, y: page.minY))
-paper.addLine(to: CGPoint(x: page.maxX, y: page.maxY - fold))
-paper.addLine(to: CGPoint(x: page.maxX - fold, y: page.maxY))
-paper.addLine(to: CGPoint(x: page.minX + 36, y: page.maxY))
-paper.addQuadCurve(to: CGPoint(x: page.minX, y: page.maxY - 36), control: CGPoint(x: page.minX, y: page.maxY))
-paper.addLine(to: CGPoint(x: page.minX, y: page.minY + 36))
-paper.addQuadCurve(to: CGPoint(x: page.minX + 36, y: page.minY), control: CGPoint(x: page.minX, y: page.minY))
-cg.saveGState()
-cg.setShadow(offset: CGSize(width: 0, height: -10), blur: 30, color: CGColor(gray: 0, alpha: 0.28))
-cg.addPath(paper); cg.setFillColor(CGColor(gray: 1, alpha: 0.97)); cg.fillPath()
-cg.restoreGState()
-let corner = CGMutablePath()
-corner.move(to: CGPoint(x: page.maxX - fold, y: page.maxY))
-corner.addLine(to: CGPoint(x: page.maxX - fold, y: page.maxY - fold + 18))
-corner.addQuadCurve(to: CGPoint(x: page.maxX - fold + 18, y: page.maxY - fold), control: CGPoint(x: page.maxX - fold, y: page.maxY - fold))
-corner.addLine(to: CGPoint(x: page.maxX, y: page.maxY - fold))
-corner.closeSubpath()
-cg.addPath(corner); cg.setFillColor(CGColor(red: 0.80, green: 0.83, blue: 0.95, alpha: 1)); cg.fillPath()
-
-// Metadata lines: solid at the top, fading into the sweep at the bottom.
-cg.setLineCap(.round)
-cg.setLineWidth(34)
-let lines: [(CGFloat, CGFloat, CGFloat)] = [(612, 545, 1), (532, 610, 1), (452, 560, 0.55), (372, 470, 0.25)]
-for (y, end, alpha) in lines {
-    cg.setStrokeColor(CGColor(red: 0.33, green: 0.30, blue: 0.86, alpha: alpha))
-    cg.move(to: CGPoint(x: 370, y: y)); cg.addLine(to: CGPoint(x: end, y: y)); cg.strokePath()
+/// Draws `body` with a soft shadow under it, so the symbol sits just above the tile.
+func raised(_ body: () -> Void) {
+    cg.saveGState()
+    cg.setShadow(offset: CGSize(width: 0, height: -8), blur: 18, color: CGColor(gray: 0, alpha: 0.18))
+    cg.beginTransparencyLayer(auxiliaryInfo: nil)
+    body()
+    cg.endTransparencyLayer()
+    cg.restoreGState()
 }
 
-// The sparkle that does the wiping.
+/// The family mark: a wavy cream ribbon hanging from a gold bow, like a kite's tail.
+func kiteTail() {
+    let knot = CGPoint(x: 796, y: 246)
+    let ribbon = CGMutablePath()
+    let steps = 40
+    for i in 0...steps {
+        let t = CGFloat(i) / CGFloat(steps)
+        let point = CGPoint(x: knot.x + sin(t * 2 * .pi) * (6 + 10 * t), y: knot.y - 96 * t)
+        if i == 0 { ribbon.move(to: point) } else { ribbon.addLine(to: point) }
+    }
+    cg.addPath(ribbon)
+    cg.setStrokeColor(cream); cg.setLineWidth(15); cg.setLineCap(.round); cg.setLineJoin(.round)
+    cg.strokePath()
+    let s: CGFloat = 21
+    let bow = CGMutablePath()
+    for side: CGFloat in [-1, 1] {
+        bow.move(to: knot)
+        bow.addLine(to: CGPoint(x: knot.x + side * s, y: knot.y + s * 0.7))
+        bow.addLine(to: CGPoint(x: knot.x + side * s, y: knot.y - s * 0.7))
+        bow.closeSubpath()
+    }
+    cg.addPath(bow); cg.setFillColor(gold); cg.fillPath()
+    cg.addEllipse(in: CGRect(x: knot.x - 6, y: knot.y - 6, width: 12, height: 12)); cg.fillPath()
+}
+
+// MARK: Symbol
+
+// A photo with a location pin, its lower part wiped away by one broad brush stroke, and two gold sparkles.
+
+/// A tapered brush streak from `a` to `b`, `width` across at its widest point (`peak` of the way along).
+func streak(_ a: CGPoint, _ b: CGPoint, width: CGFloat, peak: CGFloat = 0.35) -> CGPath {
+    let dx = b.x - a.x, dy = b.y - a.y
+    let length = (dx * dx + dy * dy).squareRoot()
+    let normal = CGPoint(x: -dy / length, y: dx / length)
+    let at = CGPoint(x: a.x + dx * peak, y: a.y + dy * peak)
+    let path = CGMutablePath()
+    path.move(to: a)
+    path.addQuadCurve(to: b, control: CGPoint(x: at.x + normal.x * width, y: at.y + normal.y * width))
+    path.addQuadCurve(to: a, control: CGPoint(x: at.x - normal.x * width, y: at.y - normal.y * width))
+    path.closeSubpath()
+    return path
+}
+
 func sparkle(_ center: CGPoint, _ radius: CGFloat) {
     let star = CGMutablePath()
-    let points = 4
-    for index in 0..<(points * 2) {
-        let angle = CGFloat(index) * .pi / CGFloat(points) + .pi / 2
-        let r = index % 2 == 0 ? radius : radius * 0.22
+    for index in 0..<8 {
+        let angle = CGFloat(index) * .pi / 4 + .pi / 2
+        let r = index % 2 == 0 ? radius : radius * 0.26
         let point = CGPoint(x: center.x + cos(angle) * r, y: center.y + sin(angle) * r)
         if index == 0 { star.move(to: point) } else { star.addLine(to: point) }
     }
     star.closeSubpath()
-    cg.saveGState()
-    cg.setShadow(offset: .zero, blur: 24, color: CGColor(red: 1, green: 0.95, blue: 0.7, alpha: 0.9))
-    cg.addPath(star); cg.setFillColor(CGColor(red: 1, green: 0.86, blue: 0.35, alpha: 1)); cg.fillPath()
-    cg.restoreGState()
+    cg.addPath(star); cg.setFillColor(gold); cg.fillPath()
 }
-sparkle(CGPoint(x: 700, y: 330), 120)
-sparkle(CGPoint(x: 790, y: 470), 52)
-sparkle(CGPoint(x: 610, y: 225), 40)
+
+raised {
+    // The photo, tilted a little: a thick cream frame around a picture of hills under a pin.
+    cg.saveGState()
+    cg.translateBy(x: 490, y: 575)
+    cg.rotate(by: 6 * .pi / 180)
+    let card = CGRect(x: -215, y: -175, width: 430, height: 350)
+    cg.addPath(CGPath(roundedRect: card, cornerWidth: 34, cornerHeight: 34, transform: nil))
+    cg.setFillColor(cream); cg.fillPath()
+    let picture = card.insetBy(dx: 36, dy: 36)
+    cg.addPath(CGPath(roundedRect: picture, cornerWidth: 10, cornerHeight: 10, transform: nil))
+    cg.setFillColor(rgb(tile)); cg.fillPath()
+    cg.saveGState()
+    cg.addPath(CGPath(roundedRect: picture, cornerWidth: 10, cornerHeight: 10, transform: nil)); cg.clip()
+    let hills = CGMutablePath()
+    hills.move(to: CGPoint(x: picture.minX, y: picture.minY))
+    hills.addLine(to: CGPoint(x: picture.minX, y: -50))
+    hills.addLine(to: CGPoint(x: -95, y: 15))
+    hills.addLine(to: CGPoint(x: -30, y: -40))
+    hills.addLine(to: CGPoint(x: 50, y: 30))
+    hills.addLine(to: CGPoint(x: picture.maxX, y: -70))
+    hills.addLine(to: CGPoint(x: picture.maxX, y: picture.minY))
+    hills.closeSubpath()
+    cg.addPath(hills); cg.setFillColor(cream); cg.fillPath()
+    cg.restoreGState()
+    // The pin: a teardrop pointing down, with a hole.
+    let pin = CGPoint(x: 100, y: 62), pr: CGFloat = 32
+    let drop = CGMutablePath()
+    drop.move(to: CGPoint(x: pin.x, y: pin.y - pr * 2.3))
+    drop.addArc(tangent1End: CGPoint(x: pin.x - pr * 1.2, y: pin.y - pr * 0.4), tangent2End: CGPoint(x: pin.x - pr, y: pin.y),
+                radius: pr * 0.4)
+    drop.addArc(center: pin, radius: pr, startAngle: .pi, endAngle: 0, clockwise: true)
+    drop.addArc(tangent1End: CGPoint(x: pin.x + pr * 1.2, y: pin.y - pr * 0.4), tangent2End: CGPoint(x: pin.x, y: pin.y - pr * 2.3),
+                radius: pr * 0.4)
+    drop.closeSubpath()
+    cg.addPath(drop); cg.setFillColor(cream); cg.fillPath()
+    cg.addEllipse(in: CGRect(x: pin.x - 12, y: pin.y - 12, width: 24, height: 24))
+    cg.setFillColor(rgb(tile)); cg.fillPath()
+    cg.restoreGState()
+
+    // The brush stroke: a broad band rising to the right, ragged where the brush came down and tapering to a point,
+    // with a thin dry streak along each side. A gap is cut around it so it reads as lying on top of the photo.
+    let band = CGMutablePath()
+    band.move(to: CGPoint(x: 214, y: 404))
+    band.addQuadCurve(to: CGPoint(x: 772, y: 482), control: CGPoint(x: 500, y: 474))
+    band.addQuadCurve(to: CGPoint(x: 244, y: 246), control: CGPoint(x: 580, y: 268))
+    for point in [(196, 276), (232, 300), (176, 328), (224, 350), (186, 378)] as [(CGFloat, CGFloat)] {
+        band.addLine(to: CGPoint(x: point.0, y: point.1))
+    }
+    band.closeSubpath()
+    let streaks: [CGPath] = [
+        band,
+        streak(CGPoint(x: 236, y: 448), CGPoint(x: 470, y: 494), width: 18, peak: 0.4),
+        streak(CGPoint(x: 268, y: 206), CGPoint(x: 500, y: 250), width: 16, peak: 0.4),
+    ]
+    cg.setBlendMode(.clear)
+    for path in streaks { cg.addPath(path) }
+    cg.setLineWidth(30); cg.setLineJoin(.round); cg.strokePath()
+    cg.setBlendMode(.normal)
+    for path in streaks { cg.addPath(path) }
+    cg.setFillColor(cream); cg.fillPath()
+
+    sparkle(CGPoint(x: 790, y: 560), 54)
+    sparkle(CGPoint(x: 770, y: 440), 30)
+}
+kiteTail()
 
 NSGraphicsContext.current = nil
 guard let png = rep.representation(using: .png, properties: [:]) else { fatalError("no png") }
