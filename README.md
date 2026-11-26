@@ -40,7 +40,7 @@ dated now).
 
 <img src="docs/screenshots/viewer-photo.png" alt="Viewer: a photo's location, camera and lens" width="49%"> <img src="docs/screenshots/viewer-ai.png" alt="Viewer: the prompt and settings saved by an AI image generator" width="49%">
 
-*Screenshots made with MetaScrub's snapshot mode on generated files with made-up metadata.*
+*Screenshots show generated files with made-up metadata.*
 
 MetaScrub is open source under the GNU General Public License, version 3 or later (`LICENSE`). Copyright (C) 2026 omso.
 
@@ -166,9 +166,6 @@ copies of real files and checks pixels, decoded audio, video frames and PDF text
 ```sh
 METASCRUB_SAMPLES=/path/to/folder ./test.sh --filter RealFileTests
 ```
-
-Screens can be captured without clicking: `METASCRUB_SNAPSHOT=/tmp/shots METASCRUB_FILES=a.jpg:b.pdf`
-launches the app, saves PNGs of each screen, cleans copies into `/tmp/shots/cleaned` and quits.
 
 ## Layout
 
