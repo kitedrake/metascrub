@@ -48,7 +48,7 @@ cat > "$app/Contents/Info.plist" <<PLIST
 <dict>
   <key>CFBundleName</key><string>MetaScrub</string>
   <key>CFBundleDisplayName</key><string>MetaScrub</string>
-  <key>CFBundleIdentifier</key><string>local.metascrub.app</string>
+  <key>CFBundleIdentifier</key><string>com.kitedrake.metascrub</string>
   <key>CFBundleExecutable</key><string>MetaScrub</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
