@@ -47,7 +47,8 @@ MetaScrub is open source under the GNU General Public License, version 3 or late
 ## Download
 
 Download the newest preview from the [Releases page](https://github.com/kitedrake/metascrub/releases): the
-`MetaScrub-<version>.zip` file under **Assets**. It needs macOS 26 or later on a Mac with Apple silicon.
+`MetaScrub-<version>.zip` file under **Assets**. It needs macOS 26 or later and runs on
+both Apple silicon and Intel Macs.
 
 **Preview build.** MetaScrub isn't signed or notarized by Apple yet, so macOS warns about it the first time you open
 it. To open it anyway:
@@ -104,7 +105,7 @@ than assumed gone.
 ## Build and run
 
 ```sh
-./build.sh                       # builds build/MetaScrub.app (ad-hoc signed, local use)
+./build.sh                       # builds build/MetaScrub.app (universal, ad-hoc signed, local use)
 open build/MetaScrub.app
 ```
 
